@@ -6,7 +6,7 @@ let
 
   cfg = config.services.dropbox;
   baseDir = ".dropbox-hm";
-  dropboxCmd = "${pkgs.dropbox-cli}/bin/dropbox";
+  dropboxCmd = "${pkgs.dropbox}/bin/dropbox";
   homeBaseDir = "${config.home.homeDirectory}/${baseDir}";
 
 in {
@@ -41,10 +41,12 @@ in {
       Install = { WantedBy = [ "default.target" ]; };
 
       Service = {
-        Environment = [ "HOME=${homeBaseDir}" "DISPLAY=" ];
+        Environment = [
+          "HOME=${homeBaseDir}"
+          "DISPLAY="
+        ];
 
-        Type = "forking";
-        PIDFile = "${homeBaseDir}/.dropbox/dropbox.pid";
+        Type = "simple";
 
         Restart = "on-failure";
         PrivateTmp = true;
@@ -67,11 +69,6 @@ in {
           if [[ ! -d ${escapeShellArg cfg.path} ]]; then
             $DRY_RUN_CMD ${pkgs.coreutils}/bin/ln $VERBOSE_ARG -s \
               ${homeBaseDir}/Dropbox ${escapeShellArg cfg.path}
-          fi
-
-          # get the dropbox bins if needed
-          if [[ ! -f $HOME/.dropbox-dist/VERSION ]]; then
-            ${pkgs.coreutils}/bin/yes | ${dropboxCmd} update
           fi
 
           ${dropboxCmd} start
